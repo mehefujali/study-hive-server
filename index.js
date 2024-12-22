@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express()
-const port =  process.env.PORT || 8080 
+const port = process.env.PORT || 8080
 require('dotenv').config()
 // mw 
 app.use(cors())
@@ -13,27 +13,31 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+      serverApi: {
+            version: ServerApiVersion.v1,
+            strict: true,
+            deprecationErrors: true,
+      }
 });
 
 async function run() {
-  try {
-     const assignmentsCollection = client.db('study-hive').collection('assignments')
+      try {
+            const assignmentsCollection = client.db('study-hive').collection('assignments')
 
-     app.post('/assignments' , async (req,res) => {
-      const assignment = req.body
-      const result = await assignmentsCollection.insertOne(assignment)
-      res.send(result)
+            app.post('/assignments', async (req, res) => {
+                  const assignment = req.body
+                  const result = await assignmentsCollection.insertOne(assignment)
+                  res.send(result)
 
-     })
-    console.log(" You successfully connected to MongoDB!");
-  } finally {
-   
-  }
+            })
+            app.get('/assignments', async (req, res) => {
+                  const assignment = await assignmentsCollection.find().toArray()
+                  res.send(assignment)
+            })
+            console.log(" You successfully connected to MongoDB!");
+      } finally {
+
+      }
 }
 run().catch(console.dir);
 
@@ -43,9 +47,9 @@ run().catch(console.dir);
 
 
 
-app.get('/' , (req,res)=>{
-      res.send({status:true})
+app.get('/', (req, res) => {
+      res.send({ status: true })
 })
 
 
-app.listen(port , console.log('surver is running on ' , port) )
+app.listen(port, console.log('surver is running on ', port))
