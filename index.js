@@ -22,7 +22,14 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-   
+     const assignmentsCollection = client.db('study-hive').collection('assignments')
+
+     app.post('/assignments' , async (req,res) => {
+      const assignment = req.body
+      const result = await assignmentsCollection.insertOne(assignment)
+      res.send(result)
+
+     })
     console.log(" You successfully connected to MongoDB!");
   } finally {
    
