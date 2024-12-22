@@ -40,8 +40,26 @@ async function run() {
                   res.send(assignment)
             })
             app.post('/submit-assignment', async (req, res) => {
-                  const result = submitedassignmentsCollection.insertOne(req.body)
+                  const result = await submitedassignmentsCollection.insertOne(req.body)
                   res.send(result)
+            })
+            app.get('/my-submited-assignment', async (req, res) => {
+                  const email = req.query.email
+                  let result = []
+                  if (email) {
+                        result = await submitedassignmentsCollection.find({ email: email }).toArray()
+                        for(let assignment of result) {
+                              const assignments = await assignmentsCollection.findOne({_id: new ObjectId(assignment.assignmentId)})
+                              assignment.title = assignments.title 
+                              
+                           
+                              assignment.marks = assignments.marks
+
+                        }
+
+                  }
+                  res.send(result)
+
             })
             console.log(" You successfully connected to MongoDB!");
       } finally {
