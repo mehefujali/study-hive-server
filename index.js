@@ -23,6 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
       try {
             const assignmentsCollection = client.db('study-hive').collection('assignments')
+            const submitedassignmentsCollection = client.db('study-hive').collection('submited-assignments')
 
             app.post('/assignments', async (req, res) => {
                   const assignment = req.body
@@ -35,8 +36,12 @@ async function run() {
                   res.send(assignment)
             })
             app.get('/assignment-details/:id', async (req, res) => {
-                  const assignment = await assignmentsCollection.findOne({_id : new ObjectId(req.params.id)})
+                  const assignment = await assignmentsCollection.findOne({ _id: new ObjectId(req.params.id) })
                   res.send(assignment)
+            })
+            app.post('/submit-assignment', async (req, res) => {
+                  const result = submitedassignmentsCollection.insertOne(req.body)
+                  res.send(result)
             })
             console.log(" You successfully connected to MongoDB!");
       } finally {
