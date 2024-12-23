@@ -1,11 +1,21 @@
 const express = require('express');
 const cors = require('cors');
 const app = express()
+const jwt = require('jsonwebtoken')
 const port = process.env.PORT || 8080
 require('dotenv').config()
+const cookieParser = require('cookie-parser');
 // mw 
-app.use(cors())
+app.use(cors({
+      origin: ['http://localhost:5173'],
+      credentials: true
+}))
 app.use(express.json())
+app.use(cookieParser())
+
+
+
+
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -25,6 +35,27 @@ async function run() {
             const assignmentsCollection = client.db('study-hive').collection('assignments')
             const submitedassignmentsCollection = client.db('study-hive').collection('submited-assignments')
 
+
+
+            app.post('/jwt', async (req, res) => {
+                  const user = req.body
+                  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '12h' })
+                  res
+                        .cookie('token', token, {
+                              httpOnly: true,
+                              secure: process.env.NODE_ENV === "production",
+                              sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
+                        })
+                        .send({ success: true })
+
+            })
+
+
+
+
+
+
+
             app.post('/assignments', async (req, res) => {
                   const assignment = req.body
                   const result = await assignmentsCollection.insertOne(assignment)
@@ -35,18 +66,33 @@ async function run() {
                   const assignment = await assignmentsCollection.find().toArray()
                   res.send(assignment)
             })
+
             app.get('/filter-assignments', async (req, res) => {
                   const filter = req.query.filter
-                  const query = {difficulty : filter}
-                  let assignment
+                  const { search } = req.query
+
+                  let option = {}
+
                   if (filter) {
-                        if (filter === 'All') {
-                              assignment = await assignmentsCollection.find().toArray()
+                        if (filter === "All") {
+                              option = {}
                         }
                         else {
-                           assignment =   await assignmentsCollection.find(query).toArray()
+                              option = { difficulty: filter }
+                        }
+
+                  }
+
+
+                  if (search) {
+                        if (search.toLowerCase() === "all") {
+                              option = {}
+                        }
+                        else {
+                              option = { title: { $regex: search, $options: "i" } }
                         }
                   }
+                  const assignment = await assignmentsCollection.find(option).toArray()
                   res.send(assignment)
             })
             app.get('/assignment-details/:id', async (req, res) => {
@@ -90,7 +136,7 @@ async function run() {
                         assignment.title = assignmentc?.title
                         assignment.marks = assignmentc?.marks
 
-                        console.log(assignmentc)
+
                   }
                   res.send(assignments)
             })
@@ -119,7 +165,7 @@ async function run() {
             })
             app.put('/update-assignment/:id', async (req, res) => {
                   const newData = req.body
-                  console.log(req.body)
+
                   const id = req.params.id
                   const filter = { _id: new ObjectId(id) }
                   const options = { upsert: true }
