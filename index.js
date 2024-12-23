@@ -48,11 +48,11 @@ async function run() {
                   let result = []
                   if (email) {
                         result = await submitedassignmentsCollection.find({ email: email }).toArray()
-                        for(let assignment of result) {
-                              const assignments = await assignmentsCollection.findOne({_id: new ObjectId(assignment.assignmentId)})
-                              assignment.title = assignments.title 
-                              
-                           
+                        for (let assignment of result) {
+                              const assignments = await assignmentsCollection.findOne({ _id: new ObjectId(assignment.assignmentId) })
+                              assignment.title = assignments.title
+
+
                               assignment.marks = assignments.marks
 
                         }
@@ -61,6 +61,29 @@ async function run() {
                   res.send(result)
 
             })
+
+            app.get('/pending-assignments', async (req, res) => {
+                  let assignments;
+                  assignments = await submitedassignmentsCollection.find({ status: "pending" }).toArray()
+                  for (let assignment of assignments) {
+                        const assignments = await assignmentsCollection.findOne({ _id: new ObjectId(assignment.assignmentId) })
+                        assignment.title = assignments.title
+
+
+                        assignment.marks = assignments.marks
+                  }
+                  res.send(assignments)
+            })
+
+
+
+
+
+
+
+
+
+
             console.log(" You successfully connected to MongoDB!");
       } finally {
 
