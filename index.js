@@ -61,9 +61,10 @@ async function run() {
                   res.send(result)
 
             })
-            app.delete('/assignments/:id' , async(req,res)=> {
-                  const id = req.params.id 
-                  const result = await assignmentsCollection.deleteOne({_id : new ObjectId(id)})
+            app.delete('/assignments/:id', async (req, res) => {
+                  const id = req.params.id
+                  const result = await assignmentsCollection.deleteOne({ _id: new ObjectId(id) })
+                  await submitedassignmentsCollection.deleteMany({assignmentId: id})
                   res.send(result)
             })
 
@@ -71,11 +72,11 @@ async function run() {
                   let assignments;
                   assignments = await submitedassignmentsCollection.find({ status: "pending" }).toArray()
                   for (let assignment of assignments) {
-                        const assignments = await assignmentsCollection.findOne({ _id: new ObjectId(assignment.assignmentId) })
-                        assignment.title = assignments.title
-
-
-                        assignment.marks = assignments.marks
+                        const assignmentc = await assignmentsCollection.findOne({ _id: new ObjectId(assignment.assignmentId) })
+                        assignment.title = assignmentc?.title
+                        assignment.marks = assignmentc?.marks
+                        
+                        console.log(assignmentc)
                   }
                   res.send(assignments)
             })
@@ -94,26 +95,30 @@ async function run() {
                   const updatedDoc = {
                         $set: {
                               status: "complited",
-                              obtainedMarks: req.body.marks ,
-                              feedback : req.body.feedback
+                              obtainedMarks: req.body.marks,
+                              feedback: req.body.feedback
 
                         }
                   }
                   const result = await submitedassignmentsCollection.updateOne(query, updatedDoc, options)
                   res.send(result);
             })
-          app.put ('/assignment/:id' , async(req,res) => {
-              const newData = req.body 
-              const id = req.params.id 
-              const filter = {_id : new ObjectId(id)}
-              const options = { upsert: true }
-              const result = assignmentsCollection.updateOne(filter , newData , options)
-              res.send(result)
-          } )
+            app.put('/update-assignment/:id', async (req, res) => {
+                  const newData = req.body
+                  console.log(req.body)
+                  const id = req.params.id
+                  const filter = { _id: new ObjectId(id) }
+                  const options = { upsert: true }
+                  const updatedDoc = {
+                        $set: {...newData}
+                        
+                  }
+                  const result = await assignmentsCollection.updateOne(filter, updatedDoc, options)
+                  res.send(result)
+            })
 
 
-
-
+              
 
 
 
