@@ -102,7 +102,14 @@ async function run() {
                   const result = await submitedassignmentsCollection.updateOne(query, updatedDoc, options)
                   res.send(result);
             })
-
+          app.put ('/assignment/:id' , async(req,res) => {
+              const newData = req.body 
+              const id = req.params.id 
+              const filter = {_id : new ObjectId(id)}
+              const options = { upsert: true }
+              const result = assignmentsCollection.updateOne(filter , newData , options)
+              res.send(result)
+          } )
 
 
 
