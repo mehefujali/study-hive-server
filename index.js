@@ -35,6 +35,20 @@ async function run() {
                   const assignment = await assignmentsCollection.find().toArray()
                   res.send(assignment)
             })
+            app.get('/filter-assignments', async (req, res) => {
+                  const filter = req.query.filter
+                  const query = {difficulty : filter}
+                  let assignment
+                  if (filter) {
+                        if (filter === 'All') {
+                              assignment = await assignmentsCollection.find().toArray()
+                        }
+                        else {
+                           assignment =   await assignmentsCollection.find(query).toArray()
+                        }
+                  }
+                  res.send(assignment)
+            })
             app.get('/assignment-details/:id', async (req, res) => {
                   const assignment = await assignmentsCollection.findOne({ _id: new ObjectId(req.params.id) })
                   res.send(assignment)
@@ -64,7 +78,7 @@ async function run() {
             app.delete('/assignments/:id', async (req, res) => {
                   const id = req.params.id
                   const result = await assignmentsCollection.deleteOne({ _id: new ObjectId(id) })
-                  await submitedassignmentsCollection.deleteMany({assignmentId: id})
+                  await submitedassignmentsCollection.deleteMany({ assignmentId: id })
                   res.send(result)
             })
 
@@ -75,7 +89,7 @@ async function run() {
                         const assignmentc = await assignmentsCollection.findOne({ _id: new ObjectId(assignment.assignmentId) })
                         assignment.title = assignmentc?.title
                         assignment.marks = assignmentc?.marks
-                        
+
                         console.log(assignmentc)
                   }
                   res.send(assignments)
@@ -110,15 +124,15 @@ async function run() {
                   const filter = { _id: new ObjectId(id) }
                   const options = { upsert: true }
                   const updatedDoc = {
-                        $set: {...newData}
-                        
+                        $set: { ...newData }
+
                   }
                   const result = await assignmentsCollection.updateOne(filter, updatedDoc, options)
                   res.send(result)
             })
 
 
-              
+
 
 
 
