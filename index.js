@@ -74,6 +74,29 @@ async function run() {
                   }
                   res.send(assignments)
             })
+            app.put('/submit-assignment/:id', async (req, res) => {
+
+                  const id = req.params.id
+                  const update = req.body
+                  const query = { _id: new ObjectId(id) }
+                  const assignment = await submitedassignmentsCollection.findOne(query)
+
+                  if (assignment.email === update.email) {
+                        res.send({ message: 'this is your assignment' })
+                        return
+                  }
+                  const options = { upsert: true };
+                  const updatedDoc = {
+                        $set: {
+                              status: "complited",
+                              obtainedMarks: req.body.marks ,
+                              feedback : req.body.feedback
+
+                        }
+                  }
+                  const result = await submitedassignmentsCollection.updateOne(query, updatedDoc, options)
+                  res.send(result);
+            })
 
 
 
