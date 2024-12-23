@@ -61,6 +61,11 @@ async function run() {
                   res.send(result)
 
             })
+            app.delete('/assignments/:id' , async(req,res)=> {
+                  const id = req.params.id 
+                  const result = await assignmentsCollection.deleteOne({_id : new ObjectId(id)})
+                  res.send(result)
+            })
 
             app.get('/pending-assignments', async (req, res) => {
                   let assignments;
