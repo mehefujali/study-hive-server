@@ -7,12 +7,28 @@ require('dotenv').config()
 const cookieParser = require('cookie-parser');
 // mw 
 app.use(cors({
-      origin: ['http://localhost:5173'],
+      origin: ['http://localhost:5173', 'http://study-hive-k.firebaseapp.com'],
       credentials: true
 }))
 app.use(express.json())
 app.use(cookieParser())
+const varifyToken = (req, res, next) => {
 
+      const token = req?.cookies?.token
+      if (!token) {
+            return res.status(401).send({ message: 'unauthorized access' })
+      }
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                  return res.status(401).send({ message: 'unauthorized access' })
+            }
+            req.user = decoded
+            next()
+
+      })
+
+
+}
 
 
 
@@ -39,7 +55,8 @@ async function run() {
 
             app.post('/jwt', async (req, res) => {
                   const user = req.body
-                  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '12h' })
+                  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' })
+
                   res
                         .cookie('token', token, {
                               httpOnly: true,
@@ -49,7 +66,14 @@ async function run() {
                         .send({ success: true })
 
             })
-
+            app.post('/logout', (req, res) => {
+                  res.clearCookie('token', {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === "production",
+                        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict"
+                  })
+                        .send({ success: true })
+            })
 
 
 
@@ -103,8 +127,11 @@ async function run() {
                   const result = await submitedassignmentsCollection.insertOne(req.body)
                   res.send(result)
             })
-            app.get('/my-submited-assignment', async (req, res) => {
+            app.get('/my-submited-assignment', varifyToken , async (req, res) => {
                   const email = req.query.email
+                  if (req.user.email !== req.query.email){
+                        return res.status(403).send({ message: 'forbidden' })
+                  }
                   let result = []
                   if (email) {
                         result = await submitedassignmentsCollection.find({ email: email }).toArray()
