@@ -7,7 +7,7 @@ require('dotenv').config()
 const cookieParser = require('cookie-parser');
 // mw 
 app.use(cors({
-      origin: ['http://localhost:5173', 'http://study-hive-k.firebaseapp.com'],
+      origin: ['http://localhost:5173', 'http://study-hive-k.firebaseapp.com' , 'https://study-hive-k.web.app'],
       credentials: true
 }))
 app.use(express.json())
@@ -119,17 +119,17 @@ async function run() {
                   const assignment = await assignmentsCollection.find(option).toArray()
                   res.send(assignment)
             })
-            app.get('/assignment-details/:id', async (req, res) => {
+            app.get('/assignment-details/:id', varifyToken , async (req, res) => {
                   const assignment = await assignmentsCollection.findOne({ _id: new ObjectId(req.params.id) })
                   res.send(assignment)
             })
-            app.post('/submit-assignment', async (req, res) => {
+            app.post('/submit-assignment', varifyToken, async (req, res) => {
                   const result = await submitedassignmentsCollection.insertOne(req.body)
                   res.send(result)
             })
-            app.get('/my-submited-assignment', varifyToken , async (req, res) => {
+            app.get('/my-submited-assignment', varifyToken, async (req, res) => {
                   const email = req.query.email
-                  if (req.user.email !== req.query.email){
+                  if (req.user.email !== req.query.email) {
                         return res.status(403).send({ message: 'forbidden' })
                   }
                   let result = []
@@ -148,14 +148,18 @@ async function run() {
                   res.send(result)
 
             })
-            app.delete('/assignments/:id', async (req, res) => {
+            app.delete('/assignments/:id', varifyToken, async (req, res) => {
                   const id = req.params.id
+                  const assignmentVeryfy = await assignmentsCollection.findOne({ _id: new ObjectId(id) })
+                  if (assignmentVeryfy.creatorEmail !== req.user.email) {
+                        return res.status(403).send({ message: 'forbidden' })
+                  }
                   const result = await assignmentsCollection.deleteOne({ _id: new ObjectId(id) })
                   await submitedassignmentsCollection.deleteMany({ assignmentId: id })
                   res.send(result)
             })
 
-            app.get('/pending-assignments', async (req, res) => {
+            app.get('/pending-assignments',varifyToken , async (req, res) => {
                   let assignments;
                   assignments = await submitedassignmentsCollection.find({ status: "pending" }).toArray()
                   for (let assignment of assignments) {
@@ -190,10 +194,14 @@ async function run() {
                   const result = await submitedassignmentsCollection.updateOne(query, updatedDoc, options)
                   res.send(result);
             })
-            app.put('/update-assignment/:id', async (req, res) => {
+            app.put('/update-assignment/:id', varifyToken, async (req, res) => {
                   const newData = req.body
-
                   const id = req.params.id
+                  const assignmentVeryfy = await assignmentsCollection.findOne({ _id: new ObjectId(id) })
+                  if (assignmentVeryfy.creatorEmail !== req.user.email) {
+                        return res.status(403).send({ message: 'forbidden' })
+                  }
+                
                   const filter = { _id: new ObjectId(id) }
                   const options = { upsert: true }
                   const updatedDoc = {
