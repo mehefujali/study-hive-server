@@ -15,6 +15,7 @@ app.use(cookieParser())
 const varifyToken = (req, res, next) => {
 
       const token = req?.cookies?.token
+      console.log('this is token ' ,token)
       if (!token) {
             return res.status(401).send({ message: 'unauthorized access' })
       }
@@ -121,6 +122,7 @@ async function run() {
             })
             app.get('/assignment-details/:id', varifyToken , async (req, res) => {
                   const assignment = await assignmentsCollection.findOne({ _id: new ObjectId(req.params.id) })
+                 
                   res.send(assignment)
             })
             app.post('/submit-assignment', varifyToken, async (req, res) => {
