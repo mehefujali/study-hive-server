@@ -19,7 +19,7 @@ Study Hive Live : https://study-hive-k.web.app
 - **Difficulty Levels:** Assignments can be categorized as Easy, Medium, or Hard.
 
 ---
-
+ 
 ## 🛠️ Technologies Used
 
 - **Frontend:** React, React Router, React Datepicker, React Tooltip
